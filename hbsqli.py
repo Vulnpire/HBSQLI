@@ -42,11 +42,16 @@ for header in headers:
 
 headers_dict = {header: header.split(": ")[1] for header in headers_list}
 
+def validate_url(url):
+    if not url.startswith(("http://", "https://")):
+        url = "http://" + url
+    return url
+
 # Function to check URLs from a file
 def onfile():
     try:
         with open(args.list, 'r') as file:
-            urls = [line.strip() for line in file]
+            urls = [validate_url(line.strip()) for line in file]
     except (FileNotFoundError, PermissionError, IOError) as e:
         console.print(f"[red]Error reading URL list file: {e}[/red]")
         exit(1)
@@ -65,12 +70,12 @@ def onfile():
                     console.print("⏱️ [bold][cyan]Response Time: [/][/]", repr(res_time))
                     console.print("🐞 [bold][cyan]Status: [/][red]Vulnerable[/][/]")
                     print()
-            except (UnicodeDecodeError, AssertionError, TimeoutError, ConnectionRefusedError, SSLError, URLError, ConnectionResetError, httpx.RequestError) as e:
+            except (UnicodeDecodeError, AssertionError, TimeoutError, ConnectionRefusedError, httpx.SSLError, httpx.RequestError) as e:
                 pass
 
 # Function to check a single URL
 def onurl():
-    url = args.url
+    url = validate_url(args.url)
 
     for header in headers_dict:
         cust_header = {header.split(": ")[0]: header.split(": ")[1]}
@@ -85,7 +90,7 @@ def onurl():
                 console.print("⏱️ [bold][cyan]Response Time: [/][/]", repr(res_time))
                 console.print("🐞 [bold][cyan]Status: [/][red]Vulnerable[/][/]")
                 print()
-        except (UnicodeDecodeError, AssertionError, TimeoutError, ConnectionRefusedError, SSLError, URLError, ConnectionResetError, httpx.RequestError) as e:
+        except (UnicodeDecodeError, AssertionError, TimeoutError, ConnectionRefusedError, httpx.SSLError, httpx.RequestError) as e:
             pass
 
 if args.url is not None:
